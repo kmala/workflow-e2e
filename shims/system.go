@@ -10,10 +10,14 @@ import (
 type Shim struct {
 	OutFile  *os.File
 	ShimFile *os.File
+	Dir      string
 }
 
 func CreateSystemShim(toShim string) (Shim, error) {
-	tempDir := strings.TrimSuffix(os.TempDir(), "/")
+	tempDir, err := ioutil.TempDir("", toShim)
+	if err != nil {
+		return Shim{}, err
+	}
 	// create out file for shim to write to
 	outFile, err := ioutil.TempFile(tempDir, fmt.Sprintf("%s.out", toShim))
 	if err != nil {
@@ -32,12 +36,11 @@ func CreateSystemShim(toShim string) (Shim, error) {
 		return Shim{}, err
 	}
 
-	return Shim{OutFile: outFile, ShimFile: shimFile}, nil
+	return Shim{OutFile: outFile, ShimFile: shimFile, Dir: tempDir}, nil
 }
 
 func RemoveShim(shim Shim) {
-	os.Remove(shim.OutFile.Name())
-	os.Remove(shim.ShimFile.Name())
+	os.RemoveAll(shim.Dir)
 }
 
 func SubstituteEnvVar(env []string, envKey string, envValue string) []string {

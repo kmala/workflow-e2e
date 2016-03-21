@@ -9,6 +9,7 @@ RUN_CMD := docker run --rm -e DEIS_ROUTER_SERVICE_HOST=${DEIS_ROUTER_SERVICE_HOS
 DEV_CMD := docker run --rm -e GO15VENDOREXPERIMENT=1 -v ${CURDIR}:${SRC_PATH} -w ${SRC_PATH} ${DEV_IMG}
 
 TEST_OPTS := -test.v -test.timeout=60m -ginkgo.v -ginkgo.slowSpecThreshold=120
+LONGRUN_TEST_OPTS := -test.v -ginkgo.v -ginkgo.slowSpecThreshold=120 -test.parallel=4
 
 MUTABLE_VERSION ?= canary
 VERSION ?= git-$(shell git rev-parse --short HEAD)
@@ -25,6 +26,10 @@ bootstrap:
 .PHONY: test-integration
 test-integration:
 	go test ./tests/... ${TEST_OPTS}
+
+.PHONY: test-longrun
+test-longrun:
+	ginkgo --focus=Longrun  --nodes=4 --stream --v longruntests
 
 # Precompile the test suite into a binary "_tests.test"
 .PHONY: build

@@ -7,12 +7,11 @@ import (
 	"strings"
 	"time"
 
+	"github.com/deis/workflow-e2e/shims"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	. "github.com/onsi/gomega/gbytes"
 	. "github.com/onsi/gomega/gexec"
-
-	"github.com/deis/workflow-e2e/shims"
 )
 
 var uuidRegExp = `[0-9a-f]{8}-([0-9a-f]{4}-){3}[0-9a-f]{12}`
@@ -233,7 +232,7 @@ func verifyAppOpen(testApp App) {
 	defer shims.RemoveShim(myShim)
 
 	// create custom env with custom/prefixed PATH value
-	env := shims.PrependPath(os.Environ(), os.TempDir())
+	env := shims.PrependPath(os.Environ(), myShim.Dir)
 
 	// invoke functionality under test
 	sess, err := startCmd(Cmd{Env: env, CommandLineString: "deis open"})
