@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
+	. "github.com/deis/workflow-e2e/utils"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	. "github.com/onsi/gomega/gbytes"
@@ -11,16 +12,16 @@ import (
 )
 
 var _ = Describe("Healthcheck", func() {
-	appName := getRandAppName()
+	appName := GetRandAppName()
 	Context("with a deployed app", func() {
 		// create and deploy an app
 		BeforeEach(func() {
-			login(url, testUser, testPassword)
-			sess, err := start("deis apps:create %s", appName)
+			Login(Url, testUser, testPassword)
+			sess, err := Run("deis apps:create %s", appName)
 			Expect(err).To(BeNil())
 			Eventually(sess).Should(Exit(0))
 			Eventually(sess).Should(Say("Creating Application... done, created %s", appName))
-			sess, err = start("deis pull deis/example-go -a %s", appName)
+			sess, err = Run("deis pull deis/example-go -a %s", appName)
 			Expect(err).To(BeNil())
 			Eventually(sess).Should(Exit(0))
 			Eventually(sess).Should(Say("Creating build... done"))
@@ -28,7 +29,7 @@ var _ = Describe("Healthcheck", func() {
 
 		// destroy the app
 		AfterEach(func() {
-			sess, err := start("deis apps:destroy --confirm=%s", appName)
+			sess, err := Run("deis apps:destroy --confirm=%s", appName)
 			Expect(err).To(BeNil())
 			Eventually(sess).Should(Exit(0))
 			Eventually(sess).Should(Say("Destroying %s...", appName))
@@ -38,7 +39,7 @@ var _ = Describe("Healthcheck", func() {
 
 		// TODO: test is broken
 		XIt("can stay running during a scale event", func() {
-			router, err := getRawRouter()
+			router, err := GetRawRouter()
 			Expect(err).To(BeNil())
 			appURLStr := fmt.Sprintf("%s://%s.%s", router.Scheme, appName, router.Host)
 			stopCh := make(chan struct{})
@@ -47,7 +48,7 @@ var _ = Describe("Healthcheck", func() {
 			// start scaling the app
 			go func() {
 				for range stopCh {
-					sess, err := start("deis ps:scale web=4 -a %s", appName)
+					sess, err := Run("deis ps:scale web=4 -a %s", appName)
 					Expect(err).To(BeNil())
 					Eventually(sess).Should(Exit(0))
 				}

@@ -3,6 +3,7 @@ package tests
 import (
 	"fmt"
 
+	. "github.com/deis/workflow-e2e/utils"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
@@ -14,20 +15,20 @@ var _ = Describe("Help", func() {
 
 	for _, flag := range []string{"--help", "-h", "help"} {
 		It(fmt.Sprintf("prints help on \"%s\"", flag), func() {
-			output, err := execute("deis " + flag)
+			output, err := Execute("deis " + flag)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(output).To(ContainSubstring(usage))
 		})
 	}
 
 	It("defaults to a usage message", func() {
-		output, err := execute("deis")
+		output, err := Execute("deis")
 		Expect(err).To(HaveOccurred())
 		Expect(output).To(ContainSubstring(usage))
 	})
 
 	It("rejects a bogus command", func() {
-		output, err := execute("deis bogus-command")
+		output, err := Execute("deis bogus-command")
 		Expect(err).To(HaveOccurred())
 		Expect(output).To(SatisfyAll(
 			ContainSubstring(noMatch),

@@ -3,6 +3,7 @@ package tests
 import (
 	"time"
 
+	. "github.com/deis/workflow-e2e/utils"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	. "github.com/onsi/gomega/gbytes"
@@ -17,38 +18,38 @@ var _ = Describe("Releases", func() {
 		exampleImage = "deis/example-go"
 
 		BeforeEach(func() {
-			gitInit()
-			testApp = App{Name: getRandAppName()}
-			createApp(testApp.Name)
+			GitInit()
+			testApp = App{Name: GetRandAppName()}
+			CreateApp(testApp.Name)
 		})
 
 		AfterEach(func() {
-			gitClean()
+			GitClean()
 		})
 
 		It("can deploy the app", func() {
 			// generate v2 release
-			deisPull(exampleImage, testApp)
+			DeisPull(exampleImage, testApp)
 
 			// "can list releases"
-			sess, err := start("deis releases:list -a %s", testApp.Name)
+			sess, err := Run("deis releases:list -a %s", testApp.Name)
 			Expect(err).To(BeNil())
 			Eventually(sess, (1 * time.Minute)).Should(Exit(0))
 			Eventually(sess).Should(Say("=== %s Releases", testApp.Name))
 			Eventually(sess).Should(Say(`v1\s+.*\s+%s created initial release`, testUser))
 
 			// generate v3 release
-			deisPull(exampleImage, testApp)
+			DeisPull(exampleImage, testApp)
 
 			// "can rollback to a previous release"
-			sess, err = start("deis releases:rollback v2 -a %s", testApp.Name)
+			sess, err = Run("deis releases:rollback v2 -a %s", testApp.Name)
 			Expect(err).To(BeNil())
 			Eventually(sess, (1 * time.Minute)).Should(Exit(0))
 			Eventually(sess).Should(Say(`Rolling back to`))
 			Eventually(sess).Should(Say(`...done`))
 
 			// "can get info on releases"
-			sess, err = start("deis releases:info v2 -a %s", testApp.Name)
+			sess, err = Run("deis releases:info v2 -a %s", testApp.Name)
 			Expect(err).To(BeNil())
 			Eventually(sess, (1 * time.Minute)).Should(Exit(0))
 			Eventually(sess).Should(Say("=== %s Release v2", testApp.Name))
